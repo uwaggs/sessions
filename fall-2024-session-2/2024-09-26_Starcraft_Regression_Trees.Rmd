@@ -1,0 +1,249 @@
+---
+title: 'Esports Part 2: Sc2, Win Prob and Trees'
+author: "UWAGGS"
+date: "2024-09-26"
+output:
+  slidy_presentation: default
+  ioslides_presentation: default
+---
+
+# Previous work
+
+What is the in-game win probability at any given point in a match, based on resources of different types.
+
+We've done this sort of problem before with Lacrosse, in which we applied a Poisson model to the number of goals left to score in a match.
+
+# Previous work
+
+As a reminder example:
+
+- Team A scores 12.5 goals/hour.
+- Team B scores 15.0 goals/hour.
+- There are 24 minutes (0.4 hours) left.
+- The current scores is 3-6.
+- Team A goal distribution is Pois(12.5 x 0.4) = Pois(5)
+- Team B goal distribution is Pois(15 x 0.4) = Pois(6)
+- We can calculate P(A > B) + 1/2*P(A = B) by raw summation up to a large number of goals n.
+
+# Intrinsic and instrumental goals
+
+This model works for certain sports because there is a single score (a clear **intrinsic** goal) that determines who is the winner.
+
+Footnote: The Poisson model works for soccer, hockey, and lacrosse. However, basketball, baseball, and football,  as well as sports where teams compete for points like volleyball and tennis all need different models for a variety of reasons.
+
+# Intrinsic and instrumental goals
+
+In real time strategy (RTS) games, like StarCraft II and ZeroK there are instrumental goals (i.e., reduce the opponent's number of buildings to zero), but there are many **instrumental** goals which are statistically very important.
+
+Instrumental goals are goals that are not the actual thing you want to achieve, but things that help you achieve the main goal.
+
+# Intrinsic and instrumental goals
+
+In sports, instrumental goals include possession of the ball, runners on base, positioning of players in threatening spots, and having a penalty advantage like a hockey power play. You and your team want to have these things, because they increase the chance of victory, but they do not define victory.
+
+In eSports, instrumental goals could be material or positional advantage (chess), having more goal than your opponent (League of Legends), having access to more mana than your opponent (Magic), or having a bigger army or store of resources (StarCraft, ZeroK).
+
+Footnote: ZeroK is an open source RTS that was developed to study strategic AI. If you want to research on RTS games or on AI, this would be a good start.
+
+# Intrinsic and instrumental goals
+
+
+Instrumental goals do not win the game.
+
+You don't win a football match by possessing the ball the longest, you just need to possess the ball sometime to win.
+
+Likewise, having the biggest army in StarCraft II does not guarantee victory, but it helps a lot.
+
+
+
+# Intrinsic and instrumental goals
+
+
+We can use these instrumental goals to model who "should" win. In real time strategy games, the relationship between instrumental goals and other goals is complicated and non-linear. The following shows a psuedo-causal graph towards game victory. (This graph is not acyclic like a true causal graph)
+
+![](Causal.jpg)
+
+# Classification Tree
+
+
+Because of this complicated dance, a regression model, even with non-liner transforms and even with interactions and link functions won't be enough to model this.
+
+Instead, we're going to dip our toes in an advanced regression method called regression trees, and a natural expansion to that, random forest.
+
+An example regression tree might look this:
+
+![](ExTree.jpg)
+
+
+# Classification Tree
+
+
+In this example the confusion matrix is...
+
+![](ConfMat.jpg)
+
+Showing a misclassification of 21 of 100 games, for an out-of-bag error of 21 percent.
+
+If we took our observations from later in the matches, like 10 minutes in, instead of 7 minutes in, we should expect to see a more accurate tree of the same complexity.
+
+
+# Classification Tree
+
+
+One issue that comes from classification and regression trees is overfitting, where one tree is very custom-fit to the data. Fot that we have two solutions: first is to limit the tree's branches with a complexity parameter. Without such a limitation, we could keep doing binary splits in the tree until every single observation had its own leaf with 100 percent accuracy.
+
+
+# Random Forest
+
+
+The other solution is more trees. If we systematically blind each individual tree to some of the observations and some of the variables, we can get a "random forest" of trees that all do something similar but not exactly the same thing. Then when we wantto classify, we use all the trees in the forest, and each one gets a 'vote'. Whatever classification gets more votes is the classification that forest produces as a whole.
+
+(Votes do NOT translate to fitted probability)
+
+
+# Random Forest
+
+
+This is good for dealing with two arbitrary things about our regression tree. First, the cutoffs are arbitrary. One branch has 1.3 times the enemy's army as a cutoff for victory; why not 1.25? Why not 1.35? Other trees will use other cutoff values because the observations available to different trees are different.
+
+Second, why is the ratio of your army size to the enemy's army size important, and why in that particular part of the the tree specifically? Other trees will have different structures because they will have access to different variables.
+
+
+![](ExTree.jpg)
+
+
+
+# Example Code - Getting SC data
+
+Let's take an example .sc2replay file. https://lotv.spawningtool.com/84126/
+
+
+Loading in from JSON
+
+```{r, eval=FALSE}
+timeline = fromJSON("output_timeline_json_84126.txt")
+names(timeline) = c("One", "Two")
+dim(timeline$One)
+
+tl1 = timeline$One
+tl2 = timeline$Two
+names(tl1)
+```
+
+
+
+# Example Code - Getting SC data
+
+
+- Ratio of active workers at time 5 mins
+- Diff of active workers
+
+```{r, eval=FALSE}
+army_ratio = tl1$total_army_value[60] / tl2$total_army_value[60]
+army_diff = tl1$total_army_value[60] - tl2$total_army_value[60]
+```
+
+
+
+# Example Code - Getting SC data
+
+
+- Ratio of supply
+- Diff of supply
+
+
+```{r, eval=FALSE}
+army_ratio = tl1$supply[60] / tl2$supply[60]
+army_diff = tl1$supply[60] - tl2$supply[60]
+```
+
+
+
+
+# Example Code - Getting SC data
+
+- Ratio of active workers
+- Diff of active workers
+
+
+```{r, eval=FALSE}
+workersa_ratio = tl1$workers_active[60] / tl2$workers_active[60]
+workersa_diff = tl1$workers_active[60] - tl2$workers_active[60]
+
+workersp_ratio = tl1$workers_produced[60] / tl2$workers_produced[60]
+workersp_diff = tl1$workers_produced[60] - tl2$workers_produced[60]
+```
+
+
+
+# Example Code - Getting SC data
+
+
+- Supply per minute
+- Total resource collected
+- Total resource unspent
+
+
+```{r, eval=FALSE}
+tl1_rescol = tl1$total_resources_collected[,1] +  tl1$total_resources_collected[,2]
+tl1_resuns = tl1$unspent_resources[,1] +  tl1$unspent_resources[,2]
+
+tl2_rescol = tl2$total_resources_collected[,1] +  tl2$total_resources_collected[,2]
+tl2_resuns = tl2$unspent_resources[,1] +  tl2$unspent_resources[,2]
+
+rescol_ratio = tl1_rescol[60] / tl2_rescol[60]
+rescol_diff = tl1_rescol[60] - tl2_rescol[60]
+
+resuns_ratio = tl1_resuns[60] / tl2_resuns[60]
+resuns_diff = tl1_resuns[60] - tl2_resuns[60]
+
+
+```
+
+# Example Code - Running a Random Forest
+
+
+The `randomForest` method repeats this process many times:
+
+
+- Subset the explanatory variables and the observations you have in the training set and make a regression tree.
+- Get the predictions for each value in the test set.
+ 
+
+Then those predictions are combined into an average. If it's a numeric response, the arithmetic mean is taken. If it's a categorical response, the most common category is taken.
+
+
+
+- From your 'training' dataset, taking a subsample of the observations and a sample of the variables.
+- Fitting a regression tree to this subsample, which only has access to some observations and some variables.
+- Repeating this process many times to get many different trees
+
+
+
+```{r, eval=FALSE}
+mod2 = randomForest(x=genes, y=pheno$Perimeter_Growth,
+ntree=500,
+mtry=300,
+nodesize=1,
+replace=TRUE) # about 59.7% of original variation
+
+print(mod2)
+```
+
+
+
+# Example Code - Running a Random Forest
+
+This `randomForest` function call has a lot of settings worth explaining.
+
+- `x` is the explanatory variables (everything but the first column in this dataset)
+- `y` is the response variable to be fitted (the first column)
+- `do.trace` update every 50 trees
+- `ntree` make 2500 trees
+- `mtry` the number of variables used to make each tree
+- `nodesize` the small number of nodes allowable at the end of each tree
+- `replace` sample the rows with or without replacement. (choose `TRUE`)
+
+# Example Code - Running a Random Forest
+
+![](ExTree2.png)

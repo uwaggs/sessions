@@ -1,5 +1,4 @@
-Session: The State of the Sports-Job Industry
-Date: October 10, 2024
-Link To Recording: https://drive.google.com/file/d/1BbyGJ3C3EU9EerG3yTSWiPpZHIsnC953/view?usp=sharing
-
+Session: Starcraft Regression Trees
+Date: September 26, 2024
+Link To Recording: https://drive.google.com/file/d/15lafhTwjlyblP_x8musw5FH1_qYf6HaZ/view?usp=sharing
 
