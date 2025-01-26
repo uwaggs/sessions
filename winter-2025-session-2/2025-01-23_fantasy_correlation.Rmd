@@ -1,0 +1,409 @@
+---
+title: "Estimating correlation of fantasy performance of MLB teammates"
+author: "Jack Davis"
+date: "2024-01-23"
+output:
+  slidy_presentation: default
+  beamer_presentation: default
+---
+
+## Packages
+
+```{r}
+library(gt)
+library(gtExtras)
+library(ggplot2)
+```
+
+
+# 1. How fantasy sports work
+
+Fantasy sports is way for fans to participate in their favourite sports by acting as virtual managers. While there are many different formats of fantasy sports, most formats have the following features.
+
+- Managers (fans) select players (athletes) from the pool of active players in the real life league.
+
+- Since only the boxscores of these players are of interest, a fantasy team can be made of players for several different real life teams.
+
+
+# 1. How fantasy sports work
+
+- Fantasy teams are organized into fantasy leagues. These leagues can have anywhere from 2 to thousands of managers depending on the format.
+
+- A fantasy team's score for the day is based on the sum of the boxscore contributions of the players on that team.
+
+This is a table of the points for various batting statistics on Yahoo! Sports fantasy. ( https://sports.yahoo.com/dailyfantasy/help/mlb/rules ) 
+
+Note that some of the events must happen together; A home run implicitly awards at least 14.2 points because you also get at least 1 run and 1 RBI.
+
+```{r, echo=FALSE}
+df = data.frame(
+  Batting_Stat = c("1B","2B","3B","HR","R","RBI","BB","SB","HBP"),
+  Points =  c(2.6, 5.2, 7.8, 10.4, 1.9, 1.9, 2.6, 4.2, 2.6)
+)
+
+
+df %>% 
+  gt() %>%
+  opt_stylize(style = 2, color = "gray")
+```
+
+
+# 2. How daily fantasy sports (DFS) work
+
+The original fantasy format, often just called fantasy sports, is a season long affair with a fantasy league of 6-12 managers, each with 1 team.
+
+In these season-long leagues, players are selected by managers in a draft at the beginning of the season. The only way to change the players on a fantasy team in this format is to trade them with another player or with the pool of players that no manager in the fantasy league has selected.
+
+There are restrictions on the players that can be selected. For example, in season-long fantasy leagues, no player* can be selected to be on two or more fantasy teams.
+
+* Because of Shohei Ohtani's unique role as a pitcher and designated hitter, his hitting and pitching contributions are sometimes split into two different players.
+
+This format of fantasy sports can be played entirely in person using pencil and paper and weekly meetings, but the internet can be used as a mediator.
+
+# 2. How daily fantasy sports (DFS) work
+
+
+By contrast, a daily fantasy league only lasts a single day, and can only be played online.
+
+There is no formal draft, and a player may be multiple fantasy teams at once. Each player can still only be on each fantasy team one time (again, with the except of Ohtani).
+
+Instead of a draft, each manager is given a budget to spend on players for their team. The cost of players is determined by the website running the DFS event.
+
+![](fantasy_budget.jpeg)
+
+# 2. How daily fantasy sports (DFS) work
+
+Another example, with position restrictions and projected points showing.
+
+![](lineup-optimizer-redesign-mlb.jpg)
+
+
+# 2. How daily fantasy sports (DFS) work
+
+There are head-to-head leagues where two managers compete directly against each other, and there are open competitions with thousands of managers.
+
+In open competitions, prizes are award in a top-heavy manner. Typically only the best performing 10-15 percent of managers are awarded anything, and the lion's share going to the top percentile of performing managers.
+
+The means that the strategy isn't necessarily to make a consistently good team, but to make a team that has a chance to be outstanding. In other words, a high expected value / mean is good, but what you really want is VARIANCE.
+
+# 2.  How daily fantasy sports (DFS) work
+
+![](10million.jpg)
+
+# 3. Maximizing total variance
+
+How do you get more variance from selecting a collection of independent players?
+
+Remember this formula from Stat 220/230/240?
+
+$$\mathrm{Var}(X + Y) = \mathrm{Var}(X) + \mathrm{Var}(Y) + 2\mathrm{Cov}(X,Y)$$
+or its generalization to $n$ random variables $X_1, \dots , X_n$?
+
+$$\mathrm{Var}\left(\sum_i X_i\right) = \sum_i\mathrm{Var}(X_i) + 2\sum_{i < j}\mathrm{Cov}(X_i, X_j)$$
+...by making your players non-independent, and getting positive covariance.
+
+
+# 3. Maximizing total variance
+
+
+How do you do that? Well, in baseball, **teammates performances are positively correlated**.
+
+So, one traditional way to get more variance is to limit your selections to a small number of teams rather than just picking the best you can afford across all teams.
+
+There's broadly three classes of reasons why this might be so.
+
+1. **Teammates are subject to the same conditions as each other.** They all face the same excellent or struggling pitcher together. They all enjoy or suffer home team advantage together. They are playing in the same weather.
+
+2. **Psychological effects** When one player does well, the others get a psychological boost.
+
+3. **Baseball is a game of scoring cascades**
+
+
+# 3. Maximizing total variance
+
+3. **Baseball is a game of scoring cascades!!!!**
+
+What does this mean? It means this:
+
+![](fenway_28-5.jpg)
+
+# 3. Maximizing total variance
+
+3. **Baseball is a game of scoring cascades!!!!**
+
+How does this happen? Baseball is played in innings with no limitation on the number of batters that can attempt to score in a given inning, except that the inning ends when the third out is recorded.
+
+That means that usually, if a batter gets safely on base, not only has he made progress towards scoring, but he has given his team another attempt to score.
+
+Consider the two following scenarios.
+
+**Scenario 1**
+
+- There are two outs recorded, and nobody on base.
+- George Springer strikes out. The inning ends.
+
+**Scenario 2**
+
+- There are two outs recorded, and nobody on base.
+- George Springer hits a double. The inning continues.
+- Bo Bichette hits a double. Springer scores. *The inning continues.*
+- Vladimir Guerrero Jr hits a single. Bichette scores. **The inning continues.**
+- Davis Schneider hits a home run. Guerrero and Schenider score. **THE INNING CONTINUES.**
+
+# 3. Maximizing total variance
+
+Now that we've established the "why" of variance and the "how" of variance. Let's move on to the "how much"?
+
+# 4. Getting data from baseballr in the sportsdataverse
+
+To get the data, I used the `baseballr` package which is part of the Sportsdataverse. ( https://www.sportsdataverse.org/ ) to do the make the hard work of scraping and formatting the boxscores of everyone in April 2024 a way shorter task than it was when I was a grad student. (Seriously, one afternoon to learn how mlb.com does IDs and code this, and one night to run it).
+
+First I used the following code to get basic information about each game that was played in April 2024. Of specific interest were the `game_pk` IDs which described games, but I also information about whether the game was rained out or part of a double header. You never know when that can come in handy, and data is cheap.
+
+```{r eval=FALSE}
+
+library(baseballr)
+library(lubridate) # for date seq
+library(dplyr) # for bind_rows
+
+regseas_dates = seq(from=ymd("2024-03-28"), to=ymd("2024-04-30"), by="days")
+Ndays = length(regseas_dates)
+
+for(k in 1:Ndays)
+{
+  thisday = regseas_dates[k]
+  thisdaypks = mlb_game_pks(thisday)
+
+  if(k == 1)
+  {
+    allpks = thisdaypks
+  }
+  if(k > 1)
+  {
+    allpks = bind_rows(allpks, thisdaypks)
+    
+  }
+ 
+  print(thisday)
+  Sys.sleep(5)
+}
+
+allpks = data.frame(allpks)
+
+
+write.csv(allpks, "Game PKs 2024.csv", row.names=FALSE)
+```
+
+
+# 4. Getting data from baseballr in the sportsdataverse
+
+```{r}
+allpks = read.csv("Game PKs 2024.csv")
+gt(allpks[1:5,c(1,3,4,5)])
+```
+
+# 4. Getting data from baseballr in the sportsdataverse
+
+Then I used similar code to get the starting batting lineups for all those games. Just under 500 games yields just under 9000 player-days. Lineups do change mid-game, but since a DFS manager can't react midgame, I'm not going to worry about that either.
+
+Notice the `Sys.sleep(5)` at the end of all of these scripts. That slows down my data scraping a lot, but it also prevents my script from triggering any sort of anti-DDOS protection on MLB's website.
+
+
+```{r, eval=FALSE}
+
+gamepks = allpks$game_pk
+Ngames = length(gamepks)
+
+for(k in 1:Ngames)
+{
+  thisgamepk = gamepks[k]
+  thisbatorder = mlb_batting_orders(thisgamepk)
+  thisbatorder$game_pk = thisgamepk
+  
+...
+  Sys.sleep(5)
+}
+
+allbatorders = data.frame(allbatorders)
+write.csv(allbatorders, "All Batorders 2024.csv", row.names=FALSE)
+
+
+```
+
+
+# 4. Getting data from baseballr in the sportsdataverse
+
+```{r}
+allbatorders = read.csv("All Batorders 2024.csv")
+gt(allbatorders[1:5,])
+```
+
+
+# 4. Getting data from baseballr in the sportsdataverse
+
+Finally, with the batting orders, I can look up player-games (that is 1 player in 1 game) one at a time and get the detailed boxscore for each one using the following script.
+
+```{r, eval=FALSE}
+
+
+playerids = allbatorders$id
+gameids = allbatorders$game_pk
+batorders = allbatorders$batting_order
+teamids = allbatorders$teamID
+Nids = length(playerids)
+
+for(k in 1:Nids)
+{
+  thisstats = mlb_player_game_stats(person_id = playerids[k], game_pk = gameids[k])
+  thisstats$batting_order = batorders[k]
+  thisstats$team_id = teamids[k]
+  
+  ...
+  Sys.sleep(5)
+}
+
+
+```
+
+
+
+# 4. Getting data from baseballr in the sportsdataverse
+
+```{r}
+allstats = read.csv("All Stats 2024.csv")
+allstats =subset(allstats, group=="hitting")
+gt(allstats[1:5,c(4:10)])
+```
+
+
+# 4. Getting data from baseballr in the sportsdataverse
+
+
+This yields count data of more than 100 possible variables about the player's performance that game. Most importantly, this includes everything that could be worth fantasy points, including:
+
+```
+...
+  [5] "stolen_bases"    
+  ...
+ [19] "runs"                                         
+ [20] "doubles"                                      
+ [21] "triples"                                      
+ [22] "home_runs"                                    
+ [23] "strike_outs"                                  
+ [24] "base_on_balls"                                
+ [25] "intentional_walks"                            
+ [26] "hits"                                         
+ [27] "hit_by_pitch"
+ ...
+ [33] "rbi"  
+ 
+ ```
+
+
+# 5. Results
+
+
+This is the correlation between batters at different positions in the order. Notice it's a mostly random cloud of values 0.05 to 0.15.
+
+![](Corr_by_bat_order.png)
+```{r, eval=FALSE}
+
+ggplot(df_fsymat, aes(x = x, y = y, fill = value)) +
+  geom_tile(color = "black") +
+  geom_text(aes(label = value), color = "white", size = 4) +
+  coord_fixed() + 
+  scale_y_reverse() + 
+  theme(axis.ticks = element_blank(),
+    axis.title.x=element_blank(), axis.title.y=element_blank(), 
+    axis.text.x = element_blank(),axis.text.y = element_blank())
+
+
+
+
+```
+
+
+# 5. Results
+
+This is averaged across distances between order positions. For example, "distance 1" is correlation between 1st and 2nd, and also between 2nd and 3rd, and so on.
+
+
+
+![](Corr_by_bat_dist.png)
+
+
+# 5. Results
+
+Running a simulation where
+
+- A random day with at least 5 games played is selected.
+- Nteams random teams are selected (NTeams is 1,2,3,5, or 9)
+- Nine players are sampled without replacement from the starting batting lineups of those teams
+- The sum of the fantasy score that those players produced is recorded.
+
+![](fantasy_score_byNTeams.png)
+
+# 5. Results
+
+Running a simulation where
+
+- all 9 players chosen from 1 team
+- 5 and 4 players chosen from 2 teams
+- 3, 3, and 3 chosen from 3 teams
+- 2,2,2,2, and 1 players chosen from 5 teams
+- 1 player each from 9 teams
+
+
+![](fantasy_score_byNTeams.png)
+
+# 5. Results
+
+```{r, eval=FALSE}
+
+# Select a day at random
+thisdate = sample(x=daylist, size=1)
+# Select the teams at random
+today_teamlist = unique(allhits$team_id[allhits$officialDate == thisdate])
+teams_picked = sample(x=today_teamlist, size=Nteams)
+plr_score = numeric(0)
+
+for(team_count in 1:Nteams)
+{
+  this_team = teams_picked[team_count]
+  
+  idxlist = which((allhits$team_id == this_team) & (allhits$officialDate == thisdate))
+  this_idx = sample(x=idxlist, size=plrs_per_team[team_count])
+  
+ 
+  plr_score = c(plr_score, allhits$fs_yahoo[this_idx])
+}  
+  
+team_scores[runcount] = sum(plr_score)
+
+}
+
+```
+
+# 6. Discussion
+
+These correlations are smaller than I thought they would be. I was expecting to see a 0.20 or 0.25 correlation from one batter to the next that dropped off as the distance between two batters in the lineup shrunk. Instead, we found a mix of correlations between 0.05 and 0.15. They're still statistically significant (because n is large), and all positive, at least.
+
+Still, a correlation of about 0.10 makes a variance of the sum that is nearly twice as much as it would be if it were independent (and a standard deviation of about 40 percent more)
+
+
+# 6. Discussion
+
+Future work: Better sampling to adhere to rules like "this many outfielders, this many 1B"
+
+Future Work: Better sampling to show smart picks rather than random picks. Weight selections by the average number of fantasy points obtained in previous N games.
+
+Future work: Fantasy sports analysis for lacrosse and volleyball before they become too advanced. (Get a foothold first while people are still sleeping on these sports!)
+
+Useful reading: Fantasy Football (and Baseball) for Smart People - Jonathan Bales ( https://www.goodreads.com/book/show/19399486-fantasy-football-and-baseball-for-smart-people )
+
+![](jon_bales.jpg)
+Useful links: 
+
+- https://www.draftkings.com/help/rules/mlb
+- https://sports.yahoo.com/dailyfantasy/help/mlb/rules
+- https://www.fanduel.com/rules

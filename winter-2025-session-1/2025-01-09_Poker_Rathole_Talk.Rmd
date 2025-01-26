@@ -1,0 +1,397 @@
+---
+title: "Mathematical Foundations of the Rathole Poker Tournament Format"
+author: "Jack Davis"
+date: "2024-08-04"
+output: slidy_presentation
+---
+
+## Packages
+
+```{r}
+library(gt)
+library(gtExtras)
+library(ggplot2)
+```
+
+## 0. How does (Texas Hold 'em) poker work 
+
+![](https://upload.wikimedia.org/wikipedia/commons/c/c0/Texas_Hold%27em_Poker_Table_with_Blinds.svg)
+
+- Each player pays the **ante**, a small amount (sometimes zero) that goes into the pot of money at the center.
+- The player to the left of the button puts up the **small blind** as a bet before seeing any cards.
+- The player to the left of the button puts up the **big blind** as a bet before seeing any cards.
+- Each player is then is given **TWO** cards.
+
+
+Image Original: Drm0hrRemake: Hazmat2, CC BY-SA 3.0 <https://creativecommons.org/licenses/by-sa/3.0>, via Wikimedia Commons
+
+
+
+## 0. How does (Texas Hold 'em) poker work 
+
+
+![](https://upload.wikimedia.org/wikipedia/commons/c/c0/Texas_Hold%27em_Poker_Table_with_Blinds.svg)
+
+- Moving clockwise (from above), players may either... 
+- **call**, put in money/chips to match the largest contribution, 
+- **bet/raise** put in more money/chips than the largest so-far contribution, or 
+- **fold**, surrender their hand and any money/chips contributed to the pot so far.
+
+
+## 0. How does (Texas Hold 'em) poker work 
+
+![](bad_beat_johnseb.gif)
+
+
+- There are four rounds of betting:
+- **Pre-flop** when everyone has only seen their own two cards.
+- **Flop** when everyone has seen the their own cards and three of the cards in the community that everyone may use.
+- **Turn** when everyone has seen four community cards, and
+- **River** when everyone has seen all five community cards.
+
+The best five-card hand out of the seven cards (two that are yours only, and five community cards) wins all the money in the pot. In the case of a tie, the pot is split (see image by John Seb Barber https://www.flickr.com/photos/johnseb/ )
+
+
+
+## 0. How does (Texas Hold 'em) poker work 
+
+![](bad_beat_johnseb.gif)
+
+There are two general classes of play formats: Cash games and tournaments.
+
+- In **cash games**, poker chips directly represent real money and at the end of play, they are converted back into real money.
+- In **tournaments**, poker chips represent your ability to remain in the tournament and keep playing. Once your chips run out, you are eliminated from the tournament.
+- To **rathole** is to quit playing a cash game early, convert your chips into cash and leave.
+- In tournaments, you either play until you have **no chips** or **everybody's chips**.
+
+## 1. How do poker tournaments work
+
+- Everyone starts with the same number of chips. 
+- The chip stakes (i.e., the ante and blinds) start small and increase according to a fixed time schedule.
+- The cash price to enter the tournament is fixed and the same for everyone, even though some people enter late.
+- There is a deadline for late entry, at which time the prize structure is determined based on the number of players and the entry fee. (i.e., the total prize pool, which online is usually about 90% of the fees collected)
+- Typically, the top 12% are paid, with the lowest among the 12% getting 1.5-2 times the entry fee as a prize. Prize increase exponentially with ranking from there.
+- Ranking is determined by how long players last. Ties, (e.g., two or more players getting knocked out in the same hand), are broken by the number of chips that each player had in the hand the hand that knocked them out.
+
+## Example payout 1
+
+
+Here is an example payout structure for a \$1 entry, 34 player tournament on GGpoker Ontario. Here, \$0.92 goes towards the prize pool per player, making for a total of \$31.28.
+
+```{r}
+payouts1 = data.frame(
+rank = 1:5,
+prize = c(10.27, 7.69, 5.76, 4.32, 3.24), 
+bounties = "No")
+
+payouts1$pct_prize = round(100*payouts1$prize/sum(payouts1$prize),2)
+payouts1$buyins_prize = round(payouts1$prize/1,2)
+```
+
+
+## Example payout 1
+
+```{r}
+payouts1 %>% 
+  gt() %>%
+  opt_stylize(style = 2, color = "gray")
+```
+
+## Example payout 2
+
+Here is an example payout structure for a \$300 entry, 200 player tournament on GGpoker Ontario. Here, \$279 goes towards the prize pool per player, making for a total of \$55,800. However, this tournament has a guaranteed pool of \$200,000, so that's the total instead until enough players enter to make the players' contributions exceed the gaurantee. When this happens, there is said to be an overlay on the tournament.
+
+
+```{r}
+payouts2 = data.frame(
+  rank = 1:17,
+  prize = c(44171.12, 34093.04,26231.84,20329.44,15708.66,12145.56,9398.02,
+            7279.38,5645.70,4160.10,rep(3533.18,2),rep(3004.08,2),rep(2557.54,3)),
+  bounties = "No")
+
+payouts2$pct_prize = round(100*payouts2$prize/sum(payouts2$prize),2)
+payouts2$buyins_prize = round(payouts2$prize/300,2)
+```
+
+
+## Example payout 2
+
+```{r}
+payouts2 %>% 
+  gt() %>%
+  opt_stylize(style = 4, color = "cyan")
+```
+
+
+
+## Example payout 3
+
+
+Here is an example payout structure for a \$5.25 entry, 60 player bounty tournament on GGpoker Ontario. Here, \$5 per player goes towards the total prizes, of which $2.50 per player is used for bounties, leaving a total of \$150, (\$2.50 x 60) for prizes for staying in the tournament.
+
+Bounties are paid to a player that knock an opponent out of the tournament. Because the 1st place player must knock out the 2nd place player, that's factored into the prize pool such that that the final bounty is what makes the difference in total payout between first and second, rather than the 'survival' payout.
+
+This example is shown to demonstrate that there are already tournament formats being played that are not traditional payouts.
+
+
+```{r}
+payouts3 = data.frame(
+  rank = 1:8,
+  prize = c(28.97,28.89,23.75,19.51,16.03,13.16,10.81,8.88),
+  bounties = "Yes")
+
+payouts3$pct_prize = round(100*payouts3$prize/sum(payouts3$prize),2)
+payouts3$buyins_prize = round(payouts3$prize/5.25,2)
+```
+
+
+## Example payout 3
+
+
+```{r}
+payouts3 %>% 
+  gt() %>%
+  opt_stylize(style = 6, color = "red")
+```
+
+
+
+
+
+## 2. Problem Statement
+
+Tournaments are tests of endurance, and they take a large time commitment to play. The only way to leave an online tournament early in existing formats are...
+
+- to forfeit,
+- to intentionally play recklessly,
+- to sit out and automatically fold each hand until your chips run out, or
+- to make a deal with ALL the other players left in the tournament to split up the existing prizes.
+
+I want to make a format where...
+
+- players can leave early with compensation that is fair to the early leaver while still rewarding the remaining players for staying and competing. 
+- Also, without incentivizing players to sit out and wait for a better reward.
+
+
+## 3. How does the ICM work?
+
+ICM is short for "Independent Chip Model".
+
+The ICM is used to determine how much a player's chips are worth in real moey given the context of the tournament. This is useful if all the remaining players decide to make a deal and finish early, and also for strategic purposes.
+
+The ICM value of a player's chip stack is determined by the usual expected value formula.
+
+$$ICM\ Value\ of\ Player\ k = E[prize] = \sum_{i=1}^n(prize_i)P(A_{ki}) $$
+
+$$= (1st\ prize)P(A_{k1}) + (2nd\ prize)P(A_{k2}) + \dots 0P(A_{kn})$$
+for $n$ players, where $prize_i$ is the prize for coming in $i$th place, and $P(A_{ki})$ is the probability of player $k$ coming in $i$th place.
+
+## 3. How does ICM work?
+
+Under ICM, the chance of any player winning first place in the tournament is assumed to be proportional to the number of chips they currently have (seat position and skill levels are ignored).
+
+$$P(A_{k1}) = \frac{chips_k}{\sum_{i=1}^n chips_i}$$
+
+## 3. ICM - Harville Method
+
+The chance of any player coming in second (or any position other than first) is determined by the Harville method
+
+The Harville method models the conditional probability that player 1 comes in second given that player 1 comes in first as:
+
+$$P(A_{12} | A_{21}) = \frac{P(A_{11})}{1 - P(A_{21})}$$
+Therefore, the joint probability of players 1 and 2 coming in second and first, respectively is:
+
+$$P(A_{12}A_{21}) = P(A_{21})P(A_{12}|A_{21}) = P(A_{21}) \frac{P(A_{11})}{1 - P(A_{21})}$$
+And, by the law of total probability, the marginal probability of player 1 coming in second is:
+
+$$P(A_{12}) = P(A_{12}A_{21}) + P(A_{12}A_{31}) + \dots + P(A_{12}A_{n1})$$
+
+## 3. ICM - Harville Method
+
+Most importantly from all this, the probability that any player comes in second can be derived from the probability of each player coming in first. It does, however, require order n calculations.
+
+
+Similarly, the probability of a player coming in third can be determined by the chances all players coming in first and second.
+
+$$P(A_{13}) = P(A_{13}A_{21}A_{32}) + P(A_{13}A_{21}A_{42}) + \dots $$
+$$+ P(A_{13}A_{21}A_{n2}) + P(A_{13}A_{22}A_{31}) + \dots + P(A_{13}A_{(n-1)1}A_{n2})$$
+
+This continues for all other positions. Determining the complete set of probability requres order $n!$ cacluations, so this is normally only done when there is a single table 9 or fewer players remaining. This makes ICM as it is usually used inadequate to determine the chip stack value of early leavers.
+
+
+## 4. Sampled ICM
+
+(Here's where the review context ends and my unique work starts)
+
+We can approximate the marginal probabilities $P(A_{ki})$ by, instead of adding together every possible joint probability, taking a weighted sum from a sample of the joint probabilities.
+
+For each player, take $N_{samp}$ joint probabilities selected by simple random sampling, and sum them. Let the sum be $S_k$ for player $k$, then
+
+$$P(A_k) \approx \frac{S_k}{\sum_i S_i}$$
+
+## 4. Sampled ICM
+
+In tests with $n=10$ players, when $N_{samp} = 100$, these approximations are typically within 0.1% of the true ICM.
+
+With this method, which uses order $n^3$ calculations, instead of order $n!$ calculations, we can estimate the ICM value of each player's stack much earlier in a tournament when there are many more players. 
+
+## 4. Sampled ICM
+
+
+When there are too many players to use the sampled ICM, the following asymptotic result can be used instead:
+
+$$ \lim_{n \rightarrow \infty}ICM\ Value\ of\ Player\ k = \sum_{i=1}^n (prize_i) \frac{chips_k}{\sum_i chips_i}$$
+This result implies the the ICM value for large $n$ (relative to the number of prizes given) is proportional to the number of chips a stack.
+
+
+## 5. Interest accumulation
+
+ICM is meant to show the value of chips at the end of the tournament if or when a deal is made. But it doesn't work for determining the reward or payout for early leavers.
+
+For that, let's treat the ICM value as a future value, where the future in question is the end of the tournament. WE can use this idea and discount rates to determine the present value of a chip stack.
+
+
+## 5. Interest accumulation
+
+The discount rate should be set such that an average stack in an average tournament would neither gain nor lose value by folding every time (which is what happens if you sit out and wait). We can apply the discount rate once per level.
+
+Blinds and antes increase in tournaments according to levels, which are fixed intervals. 
+
+For example, the first level of a tournament might have big and small blinds of 100 and 50 chips respectively, which determines the blinds for any hands that start in the first seven minutes. 
+
+The second level might have big and small blinds of 120 and 60 chips respectively, and any hands that start in the next seven minutes use those blinds.
+
+## 5. Interest accumulation
+
+For any given level, we can use the discount rate 
+
+$$D_L = \frac{(BB + SB + (Players\ at\ table)Ante) \times (Hands\ per\ Level)}
+{(Average\ Stack) \times (Players\ at\ table)}$$
+
+Where... 
+
+$D_L$ is the discount rate at level $L$, 
+
+$BB$ is the size of a big blind, 
+
+$SB$ is the size of a small blind (almost always $0.5BB$),
+
+$Ante$ is the size of the ante each player pays (typically $0.1BB - 0.125BB$), $Hands\ per\ level$ is the number of hands played by a player during each level, and 
+
+$Average\ stack$ and $Player\ at\ table$ are average stack sizes and players sitting at each table, respectively.
+
+
+## 5. Interest accumulation
+
+
+Looking at some sample data from GGpoker of $5 entry "big" and "bounty" tournaments, levels are set to take 7 minutes each, there are 7-8 players per table until the very late levels, and play happens at 1 hand per minute, or 7 hands per level. The discount rate then roughly simplifies to
+
+$$D_L = \frac{2.35 BB}{Average\ stack}$$
+
+## 5. Interest accumulation
+
+```{r, echo=FALSE}
+mins = 7
+level = 1:20
+big_blind = c(100,120,150,200,250,300,400,500,600,700,
+              800,1000,1200,1600,2000,2500,3000,3500,4000,5000)
+hands_played = c(0, diff(c(0,5,10,18,33,44,52,60,68,76,83,89,
+                           96,101,110,118,131,142,156,174)))
+avg_stack = c(10000,10000,10000,11111,15000,14444,14545,16153,
+              15000,17333,18666,20000,22500,25333,31666,47500,
+              76000,76000,95000,126666)
+players_left = c(8,8,9,9,8,9,11,13,16,15,15,16,16,15,12,8,5,5,4,3)
+players_total = c(8,8,9,10,12,13,16,21,24,26,28,32,36,rep(38,7))
+raw_interest = round(2.35*big_blind/avg_stack,3)
+
+tourney_data = data.frame(mins, level, big_blind, hands_played,
+                          avg_stack, players_left,
+                          players_total, raw_interest)
+```
+
+
+```{r}
+tourney_data %>% 
+  gt() %>%
+  opt_stylize(style = 1, color = "pink")
+```
+
+
+## 5. Interest accumulation
+
+
+That same sample data suggests a smoothed discount rate of 0.025 at level 1, moving up linearly to 0.12 at level 20. For the sampled tournaments, there are typically 5 or fewer players remaining and the tournament ends soon after.
+
+This gives us a present value at level $L$, $PV_L$ of
+
+$$PV_L = \frac{ICM\ value}{\prod_{i=L}^{20}(1 + D_i)}$$
+## 5. Interest accumulation
+
+```{r}
+tourney_data$PVL = cumprod(1+raw_interest) / max(cumprod(1+raw_interest))
+
+ ggplot(tourney_data, aes(x=level, y=PVL)) +
+  geom_point() +
+  geom_smooth(method=loess , color="red") + 
+   labs(y=c("Present Value / ICM", x="Level"))
+
+```
+
+
+
+## 6. Leaving early (rathole) mechanic
+
+When a player leaves early their chips are removed from play, and their payout is taken out of the prize pool. Removing the leaving players' chips makes every chip remaining in the tournament more valuable, but the reduction in the total prize pool makes every chip remaining less valuable. However, because the present value of chips is less than their ICM value, the net effect is that remaining chips become more valuable, thereby rewarding players for staying in the tournament when others leave.
+
+## 6. Leaving early (rathole) mechanic
+
+There are two simple ways to reduce the prize pool, either reduce all prizes by the same proportion. For example, if 10 percent of the total value is paid early, then every remaining prize is multiplied by 90 percent. The other way is to reduce the number of prizes given, but that causes complications in bubble situations (i.e., when there are just barely more players remaining than there are prizes). The proportional method is recommended.
+
+## 6. Leaving early (rathole) mechanic
+
+Early leavers make it easier for the remaining players to reach the top 12 percent, but they also reduce the total money available for the remaining players. As such, a tighter, more top-have prize structure like those found in bounty tournaments is recommended. That way if many players leave early, the minimum payout for those that stay should still cover the entry fee.
+
+## 6. Leaving early (rathole) mechanic
+
+Communication and timing is key. For this reason, we only recommend early leaving being an option during hourly breaks. This way, there is time to calculate SIICCM (sampled independent interest collecting chip model) value for all the players and there are fewer complications with decisions around timing of when to leave the tournament (e.g., when a player is losing focus, or right after a big win that they are afraid of losing).
+
+## 6. Leaving early (rathole) mechanic
+
+At the beginning of the break, each player could be told their stack's ICM value and their stack's SIICCM value.
+
+At the end of the break, all remaining players could be told their stack's new (increased) ICM value, and the proportion of players, chips, and prize money that has been removed from the tournament.
+
+Example message:
+
+- 7 percent of players left, representing
+- 9 percent of all chips, and 
+- 6 percent of the total prize pool.
+- Your ICM was \$12.13, and now it is \$12.57 because of the early leavers.
+
+## 6. Leaving early (rathole) mechanic
+
+Example payout chart before/after early payouts of 10 percent of pool have been removed.
+
+
+```{r}
+total_before = sum(payouts1$prize)
+prize_before = payouts1$prize
+prize_after = round(payouts1$prize * 0.90, 2)
+pct = payouts1$pct_prize
+rank = 1:5
+
+payouts4 = data.frame(rank, prize_before, prize_after, pct)
+
+
+payouts4 %>% 
+  gt() %>%
+  opt_stylize(style = 3, color = "green")
+```
+
+
+## Next steps
+
+Next steps: Simulate players as random walks with realistic walks to show how a tournament might go down.
+
+Does anyone "know a guy" at GGpoker or Stars Group?
+
