@@ -1,0 +1,17 @@
+id,city_name,country,venue_name,region_cluster,airport_code
+1,Atlanta,USA,Mercedes-Benz Stadium,East,ATL
+2,Boston,USA,Gillette Stadium,East,BOS
+3,Dallas,USA,AT&T Stadium,Central,DAL
+4,Houston,USA,NRG Stadium,Central,IAH
+5,Kansas City,USA,Arrowhead Stadium,Central,MCI
+6,Los Angeles,USA,SoFi Stadium,West,LAX
+7,Miami,USA,Hard Rock Stadium,East,MIA
+8,New York/New Jersey,USA,MetLife Stadium,East,EWR
+9,Philadelphia,USA,Lincoln Financial Field,East,PHL
+10,San Francisco Bay Area,USA,Levi's Stadium,West,SFO
+11,Seattle,USA,Lumen Field,West,SEA
+12,Toronto,Canada,BMO Field,East,YYZ
+13,Vancouver,Canada,BC Place,West,YVR
+14,Guadalajara,Mexico,Estadio Akron,Central,GDL
+15,Mexico City,Mexico,Estadio Azteca,Central,MEX
+16,Monterrey,Mexico,Estadio BBVA,Central,MTY

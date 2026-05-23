@@ -1,0 +1,8 @@
+id,stage_name,stage_order
+1,Group Stage,1
+2,Round of 32,2
+3,Round of 16,3
+4,Quarterfinals,4
+5,Semifinals,5
+6,Third Place Playoff,6
+7,Final,7
