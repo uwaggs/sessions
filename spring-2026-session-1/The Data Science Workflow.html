@@ -111,6 +111,7 @@
     }
     .reveal .slide:not(.center) {
       height: 100%;
+      overflow-y: auto;
     }
     .reveal .slide.scrollable {
       overflow-y: auto;
@@ -213,8 +214,8 @@ David Awosoga
 <li><p>Create your own project by applying these steps to a sports case study</p></li>
 </ul>
 </li>
-<li><p>Code snippets will be provided in <code>R</code></p></li>
-</ul></section><section id="steps-in-a-typical-data-science-project" class="slide level2"><h2>Steps in a Typical Data Science Project</h2>
+<li><p>Code snippets will be provided in <code>R</code> and <code>Python</code></p></li>
+</ul></section><section id="steps-in-a-typical-data-science-project" class="slide level2 scrollable"><h2>Steps in a Typical Data Science Project</h2>
 
 <img data-src="data-science-workflow.png" class="r-stretch quarto-figure-center"><p class="caption">Image courtesy of R4DS (2e), Wickham et al</p><p>Other forms: <a href="https://sas.uwaterloo.ca/~rwoldfor/courses/ExploratoryDataAnalysis/Slides/2020/I.%20Empirical%20Problem%20Solving/EmpiricalProblemSolvingNoPause.pdf">PPDAC</a></p>
 <aside class="notes"><p>The data science workflow, as described in <a href="https://r4ds.hadley.nz/whole-game.html">R for Data Science (2e)</a> by the aforementioned Hadley Wickham, consists of how information is transformed from raw data into actionable insights. A full data solutions workflow consists of the following steps:</p>
@@ -340,11 +341,19 @@ David Awosoga
 </li>
 </ul></section><section id="step-1-import---code" class="slide level2"><h2>Step 1: Import - Code</h2>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
+<details class="code-fold"><summary>R</summary><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">elo_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_csv</a></span><span class="op">(</span><span class="st">"eloratings.csv"</span><span class="op">)</span></span>
 <span><span class="va">fifa_teams</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_csv</a></span><span class="op">(</span><span class="st">"fifa-schedule/teams.csv"</span><span class="op">)</span></span>
 <span><span class="va">fifa_matches</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html">read_csv</a></span><span class="op">(</span><span class="st">"fifa-schedule/matches.csv"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold"><summary>Python</summary><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb2-2"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="" aria-hidden="true" tabindex="-1"></a>elo_data <span class="op">=</span> pd.read_csv(<span class="st">"eloratings.csv"</span>)</span>
+<span id="cb2-4"><a href="" aria-hidden="true" tabindex="-1"></a>fifa_teams <span class="op">=</span> pd.read_csv(<span class="st">"fifa-schedule/teams.csv"</span>)</span>
+<span id="cb2-5"><a href="" aria-hidden="true" tabindex="-1"></a>fifa_matches <span class="op">=</span> pd.read_csv(<span class="st">"fifa-schedule/matches.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section><section id="step-2-tidy" class="slide level2"><h2>Step 2: Tidy</h2>
@@ -386,7 +395,7 @@ David Awosoga
 </li>
 </ul></section><section id="step-2-tidy---code" class="slide level2"><h2>Step 2: Tidy - Code</h2>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">most_recent_elo</span> <span class="op">&lt;-</span> </span>
+<details class="code-fold"><summary>R</summary><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">most_recent_elo</span> <span class="op">&lt;-</span> </span>
 <span>  <span class="va">elo_data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span></span>
 <span>    date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="va">date</span>, format <span class="op">=</span> <span class="st">"%m/%d/%Y"</span><span class="op">)</span></span>
@@ -414,6 +423,47 @@ David Awosoga
 <span>      .default <span class="op">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_trim.html">str_squish</a></span><span class="op">(</span><span class="va">team_name</span><span class="op">)</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span> </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold"><summary>Python</summary><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># tidy the Elo data</span></span>
+<span id="cb4-2"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> normalize_team_name(series):</span>
+<span id="cb4-4"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (</span>
+<span id="cb4-5"><a href="" aria-hidden="true" tabindex="-1"></a>        series.astype(<span class="bu">str</span>)</span>
+<span id="cb4-6"><a href="" aria-hidden="true" tabindex="-1"></a>        .<span class="bu">str</span>.replace(<span class="st">'</span><span class="ch">\xa0</span><span class="st">'</span>, <span class="st">' '</span>, regex<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb4-7"><a href="" aria-hidden="true" tabindex="-1"></a>        .<span class="bu">str</span>.replace(<span class="vs">r'\s+'</span>, <span class="st">' '</span>, regex<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-8"><a href="" aria-hidden="true" tabindex="-1"></a>        .<span class="bu">str</span>.strip()</span>
+<span id="cb4-9"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-10"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="" aria-hidden="true" tabindex="-1"></a>most_recent_elo <span class="op">=</span> (</span>
+<span id="cb4-12"><a href="" aria-hidden="true" tabindex="-1"></a>    elo_data</span>
+<span id="cb4-13"><a href="" aria-hidden="true" tabindex="-1"></a>    .assign(</span>
+<span id="cb4-14"><a href="" aria-hidden="true" tabindex="-1"></a>        date <span class="op">=</span> pd.to_datetime(elo_data[<span class="st">'date'</span>], <span class="bu">format</span><span class="op">=</span><span class="st">"%m/</span><span class="sc">%d</span><span class="st">/%Y"</span>, errors<span class="op">=</span><span class="st">'coerce'</span>),</span>
+<span id="cb4-15"><a href="" aria-hidden="true" tabindex="-1"></a>        team_key <span class="op">=</span> <span class="kw">lambda</span> df: normalize_team_name(df[<span class="st">'team'</span>])</span>
+<span id="cb4-16"><a href="" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-17"><a href="" aria-hidden="true" tabindex="-1"></a>    .sort_values(<span class="st">'date'</span>)</span>
+<span id="cb4-18"><a href="" aria-hidden="true" tabindex="-1"></a>    .drop_duplicates(subset<span class="op">=</span><span class="st">'team_key'</span>, keep<span class="op">=</span><span class="st">'last'</span>)</span>
+<span id="cb4-19"><a href="" aria-hidden="true" tabindex="-1"></a>    .loc[:, [<span class="st">'team_key'</span>, <span class="st">'rating'</span>]]</span>
+<span id="cb4-20"><a href="" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-21"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="" aria-hidden="true" tabindex="-1"></a>fifa_teams <span class="op">=</span> (</span>
+<span id="cb4-23"><a href="" aria-hidden="true" tabindex="-1"></a>    fifa_teams</span>
+<span id="cb4-24"><a href="" aria-hidden="true" tabindex="-1"></a>    .assign(team_name <span class="op">=</span> <span class="kw">lambda</span> df: df[<span class="st">'team_name'</span>].<span class="bu">str</span>.strip())</span>
+<span id="cb4-25"><a href="" aria-hidden="true" tabindex="-1"></a>    .replace({</span>
+<span id="cb4-26"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Winner UEFA Playoff A"</span>: <span class="st">"Bosnia and Herzegovina"</span>,</span>
+<span id="cb4-27"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Winner UEFA Playoff B"</span>: <span class="st">"Sweden"</span>,</span>
+<span id="cb4-28"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Winner UEFA Playoff C"</span>: <span class="st">"Turkey"</span>,</span>
+<span id="cb4-29"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Winner UEFA Playoff D"</span>: <span class="st">"Czechia"</span>,</span>
+<span id="cb4-30"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Winner FIFA Playoff 1"</span>: <span class="st">"Democratic Republic of Congo"</span>,</span>
+<span id="cb4-31"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Winner FIFA Playoff 2"</span>: <span class="st">"Iraq"</span>,</span>
+<span id="cb4-32"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="st">"USA"</span>: <span class="st">"United States"</span>,</span>
+<span id="cb4-33"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="st">"IR Iran"</span>: <span class="st">"Iran"</span>,</span>
+<span id="cb4-34"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Cabo Verde"</span>: <span class="st">"Cape Verde"</span>,</span>
+<span id="cb4-35"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Côte d'Ivoire"</span>: <span class="st">"Ivory Coast"</span></span>
+<span id="cb4-36"><a href="" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb4-37"><a href="" aria-hidden="true" tabindex="-1"></a>    .assign(team_key <span class="op">=</span> <span class="kw">lambda</span> df: normalize_team_name(df[<span class="st">'team_name'</span>]))</span>
+<span id="cb4-38"><a href="" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section><section id="step-3-transform" class="slide level2"><h2>Step 3: Transform</h2>
@@ -473,7 +523,7 @@ David Awosoga
 </li>
 </ul></section><section id="step-3-transform---code" class="slide level2"><h2>Step 3: Transform - Code</h2>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fifa_teams_with_rankings</span> <span class="op">&lt;-</span> </span>
+<details class="code-fold"><summary>R</summary><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fifa_teams_with_rankings</span> <span class="op">&lt;-</span> </span>
 <span>  <span class="va">fifa_teams</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span></span>
 <span>    <span class="va">most_recent_elo</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"team_name"</span> <span class="op">=</span> <span class="st">"team"</span><span class="op">)</span></span>
@@ -493,6 +543,23 @@ David Awosoga
 <span><span class="va">elo_prob</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">rating_a</span>, <span class="va">rating_b</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="fl">10</span><span class="op">^</span><span class="op">(</span><span class="op">(</span><span class="va">rating_b</span> <span class="op">-</span> <span class="va">rating_a</span><span class="op">)</span> <span class="op">/</span> <span class="fl">400</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold"><summary>Python</summary><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="" aria-hidden="true" tabindex="-1"></a>fifa_teams_with_rankings <span class="op">=</span> (</span>
+<span id="cb6-2"><a href="" aria-hidden="true" tabindex="-1"></a>    fifa_teams</span>
+<span id="cb6-3"><a href="" aria-hidden="true" tabindex="-1"></a>    .merge(most_recent_elo, on<span class="op">=</span><span class="st">'team_key'</span>, how<span class="op">=</span><span class="st">'left'</span>)</span>
+<span id="cb6-4"><a href="" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-5"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="" aria-hidden="true" tabindex="-1"></a>complete_schedule <span class="op">=</span> (</span>
+<span id="cb6-7"><a href="" aria-hidden="true" tabindex="-1"></a>    fifa_matches</span>
+<span id="cb6-8"><a href="" aria-hidden="true" tabindex="-1"></a>    .merge(fifa_teams_with_rankings, left_on<span class="op">=</span><span class="st">'home_team_id'</span>, right_on<span class="op">=</span><span class="st">'id'</span>, how<span class="op">=</span><span class="st">'left'</span>)</span>
+<span id="cb6-9"><a href="" aria-hidden="true" tabindex="-1"></a>    .merge(fifa_teams_with_rankings, left_on<span class="op">=</span><span class="st">'away_team_id'</span>, right_on<span class="op">=</span><span class="st">'id'</span>, how<span class="op">=</span><span class="st">'left'</span>, suffixes<span class="op">=</span>(<span class="st">'_home'</span>, <span class="st">'_away'</span>))</span>
+<span id="cb6-10"><a href="" aria-hidden="true" tabindex="-1"></a>    .query(<span class="st">'stage_id == 1'</span>)</span>
+<span id="cb6-11"><a href="" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-12"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> elo_prob(rating_a, rating_b):</span>
+<span id="cb6-14"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">1</span> <span class="op">/</span> (<span class="dv">1</span> <span class="op">+</span> <span class="dv">10</span> <span class="op">**</span> ((rating_b <span class="op">-</span> rating_a) <span class="op">/</span> <span class="dv">400</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section><section id="step-4-visualize" class="slide level2"><h2>Step 4: Visualize</h2>
@@ -520,7 +587,7 @@ David Awosoga
 <li>
 <p>Tables</p>
 <ul>
-<li>Eg: <a href="https://gt.rstudio.com"><code>gt</code></a> (R), <a href="https://posit-dev.github.io/great-tables/articles/intro.html?_gl=1*y3489p*_ga*MjAzNTYzNjYyLjE3Njk0NTQ1MTU.*_ga_2C0WZ1JHG0*czE3NzIyMjUwMzUkbzk0JGcxJHQxNzcyMjI3NjAxJGo2MCRsMCRoMA.."><code>Great Tables</code></a> (Python)</li>
+<li>Eg: <a href="https://gt.rstudio.com"><code>gt</code></a> (R), <a href="https://posit-dev.github.io/great-tables/articles/intro.html"><code>Great Tables</code></a> (Python)</li>
 </ul>
 </li>
 </ul>
@@ -543,8 +610,7 @@ David Awosoga
 <em>How</em> has the information been visualized in analogous or adjacent use cases?</li>
 </ul></section><section id="step-4-visualize---code" class="slide level2"><h2>Step 4: Visualize - Code</h2>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># visualize the "group of death"</span></span>
-<span></span>
+<details class="code-fold"><summary>R</summary><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># visualize the "group of death"</span></span>
 <span><span class="va">fifa_teams_with_rankings</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">group_letter</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>mean_rating <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">rating</span>, na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
@@ -569,6 +635,53 @@ David Awosoga
 <span>  <span class="co">#   "fill", x = "I", y = 2100, fill = "red"</span></span>
 <span>  <span class="co"># ) +</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">lims</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2500</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<img data-src="s26-session-1_files/figure-revealjs/unnamed-chunk-7-1.png" width="960" class="r-stretch"><div class="cell">
+<details class="code-fold"><summary>Python</summary><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># visualize the "group of death"</span></span>
+<span id="cb8-2"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb8-4"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Recreate dplyr pipeline: mean Elo by group, ordered by mean rating</span></span>
+<span id="cb8-6"><a href="" aria-hidden="true" tabindex="-1"></a>plot_df <span class="op">=</span> (</span>
+<span id="cb8-7"><a href="" aria-hidden="true" tabindex="-1"></a>    fifa_teams_with_rankings</span>
+<span id="cb8-8"><a href="" aria-hidden="true" tabindex="-1"></a>    .groupby(<span class="st">'group_letter'</span>, as_index<span class="op">=</span><span class="va">False</span>)[<span class="st">'rating'</span>]</span>
+<span id="cb8-9"><a href="" aria-hidden="true" tabindex="-1"></a>    .mean()</span>
+<span id="cb8-10"><a href="" aria-hidden="true" tabindex="-1"></a>    .rename(columns<span class="op">=</span>{<span class="st">'rating'</span>: <span class="st">'mean_rating'</span>})</span>
+<span id="cb8-11"><a href="" aria-hidden="true" tabindex="-1"></a>    .assign(group_of_death<span class="op">=</span><span class="kw">lambda</span> d: d[<span class="st">'group_letter'</span>].eq(<span class="st">'I'</span>).<span class="bu">map</span>({<span class="va">True</span>: <span class="st">'Group of Death'</span>, <span class="va">False</span>: <span class="st">'Other'</span>}))</span>
+<span id="cb8-12"><a href="" aria-hidden="true" tabindex="-1"></a>    .sort_values(<span class="st">'mean_rating'</span>).</span>
+<span id="cb8-13"><a href="" aria-hidden="true" tabindex="-1"></a>    reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb8-14"><a href="" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-15"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Colors to mimic highlighted "group of death"</span></span>
+<span id="cb8-17"><a href="" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> plot_df[<span class="st">'group_of_death'</span>].<span class="bu">map</span>({<span class="st">'Group of Death'</span>: <span class="st">'#d62728'</span>, <span class="st">'Other'</span>: <span class="st">'#9ecae1'</span>})</span>
+<span id="cb8-18"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="dv">5</span>))</span>
+<span id="cb8-20"><a href="" aria-hidden="true" tabindex="-1"></a>ax.bar(plot_df[<span class="st">'group_letter'</span>], plot_df[<span class="st">'mean_rating'</span>], color<span class="op">=</span>colors)</span>
+<span id="cb8-21"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-22"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># theme_bw-like clean style</span></span>
+<span id="cb8-23"><a href="" aria-hidden="true" tabindex="-1"></a>ax.set_facecolor(<span class="st">'white'</span>)</span>
+<span id="cb8-24"><a href="" aria-hidden="true" tabindex="-1"></a>fig.patch.set_facecolor(<span class="st">'white'</span>)</span>
+<span id="cb8-25"><a href="" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> spine <span class="kw">in</span> ax.spines.values():</span>
+<span id="cb8-26"><a href="" aria-hidden="true" tabindex="-1"></a>    spine.set_visible(<span class="va">True</span>)</span>
+<span id="cb8-27"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-28"><a href="" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'2026 FIFA World Cup: Average Elo Rating by Group'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, pad<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb8-29"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-30"><a href="" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Group'</span>)</span>
+<span id="cb8-31"><a href="" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Average Elo Rating'</span>)</span>
+<span id="cb8-32"><a href="" aria-hidden="true" tabindex="-1"></a>ax.set_ylim(<span class="dv">0</span>, <span class="dv">2500</span>)</span>
+<span id="cb8-33"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-34"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Subtitle and caption equivalents</span></span>
+<span id="cb8-35"><a href="" aria-hidden="true" tabindex="-1"></a>fig.text(<span class="fl">0.99</span>, <span class="fl">0.01</span>, <span class="st">'Data: Kaggle | Visualization: David Awosoga'</span>, ha<span class="op">=</span><span class="st">'right'</span>, va<span class="op">=</span><span class="st">'bottom'</span>, fontsize<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb8-36"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-37"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># Annotate Group I if present</span></span>
+<span id="cb8-38"><a href="" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="st">'I'</span> <span class="kw">in</span> plot_df[<span class="st">'group_letter'</span>].values:</span>
+<span id="cb8-39"><a href="" aria-hidden="true" tabindex="-1"></a>    x_pos <span class="op">=</span> plot_df.index[plot_df[<span class="st">'group_letter'</span>].eq(<span class="st">'I'</span>)][<span class="dv">0</span>] <span class="co"># THIS is the old position, not the reordered position</span></span>
+<span id="cb8-40"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-41"><a href="" aria-hidden="true" tabindex="-1"></a>    ax.text(x_pos, <span class="dv">2200</span>, <span class="st">'Group</span><span class="ch">\n</span><span class="st">of</span><span class="ch">\n</span><span class="st">Death'</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb8-42"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-43"><a href="" aria-hidden="true" tabindex="-1"></a>plt.tight_layout(rect<span class="op">=</span>[<span class="dv">0</span>, <span class="fl">0.04</span>, <span class="dv">1</span>, <span class="fl">0.96</span>])</span>
+<span id="cb8-44"><a href="" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section><section id="step-5-model" class="slide level2"><h2>Step 5: Model</h2>
@@ -619,7 +732,7 @@ David Awosoga
 </li>
 </ul></section><section id="step-5-model---code" class="slide level2"><h2>Step 5: Model - Code</h2>
 <div class="cell">
-<details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># simulate the group stage</span></span>
+<details class="code-fold"><summary>R</summary><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># simulate the group stage</span></span>
 <span></span>
 <span><span class="va">simulate_group_stage</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">schedule_data</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">schedule_data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
@@ -638,7 +751,7 @@ David Awosoga
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">2026</span><span class="op">)</span></span>
-<span><span class="va">n_simulations</span> <span class="op">=</span> <span class="fl">10</span></span>
+<span><span class="va">n_simulations</span> <span class="op">=</span> <span class="fl">1000</span></span>
 <span></span>
 <span><span class="va">simulations</span> <span class="op">&lt;-</span> </span>
 <span>  <span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html">map_dfr</a></span><span class="op">(</span></span>
@@ -677,6 +790,76 @@ David Awosoga
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html">desc</a></span><span class="op">(</span><span class="va">prob_advance</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">advancing_teams</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details><div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  team    times_advanced prob_advance
+  &lt;chr&gt;            &lt;int&gt;        &lt;dbl&gt;
+1 Canada             999        0.999
+2 Spain              999        0.999
+3 Brazil             995        0.995
+4 France             995        0.995
+5 Germany            995        0.995
+6 Ecuador            989        0.989</code></pre>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold"><summary>Python</summary><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb11-2"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> simulate_group_stage(schedule_data):</span>
+<span id="cb11-4"><a href="" aria-hidden="true" tabindex="-1"></a>    schedule_data <span class="op">=</span> schedule_data.copy()</span>
+<span id="cb11-5"><a href="" aria-hidden="true" tabindex="-1"></a>    schedule_data[<span class="st">'home_win_prob'</span>] <span class="op">=</span> elo_prob(schedule_data[<span class="st">'rating_home'</span>], schedule_data[<span class="st">'rating_away'</span>])</span>
+<span id="cb11-6"><a href="" aria-hidden="true" tabindex="-1"></a>    schedule_data[<span class="st">'home_team_wins'</span>] <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, schedule_data[<span class="st">'home_win_prob'</span>])</span>
+<span id="cb11-7"><a href="" aria-hidden="true" tabindex="-1"></a>    schedule_data[<span class="st">'home_team_points'</span>] <span class="op">=</span> np.where(schedule_data[<span class="st">'home_team_wins'</span>] <span class="op">==</span> <span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">0</span>)</span>
+<span id="cb11-8"><a href="" aria-hidden="true" tabindex="-1"></a>    schedule_data[<span class="st">'away_team_points'</span>] <span class="op">=</span> np.where(schedule_data[<span class="st">'home_team_wins'</span>] <span class="op">==</span> <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">3</span>)</span>
+<span id="cb11-9"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> schedule_data</span>
+<span id="cb11-10"><a href="" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-11"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># set seed</span></span>
+<span id="cb11-12"><a href="" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">2026</span>)</span>
+<span id="cb11-13"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-14"><a href="" aria-hidden="true" tabindex="-1"></a>n_simulations <span class="op">=</span> <span class="dv">10000</span></span>
+<span id="cb11-15"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="" aria-hidden="true" tabindex="-1"></a>simulations <span class="op">=</span> pd.concat(</span>
+<span id="cb11-17"><a href="" aria-hidden="true" tabindex="-1"></a>    [simulate_group_stage(complete_schedule).assign(simulation_id<span class="op">=</span>i) <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, n_simulations <span class="op">+</span> <span class="dv">1</span>)],</span>
+<span id="cb11-18"><a href="" aria-hidden="true" tabindex="-1"></a>    ignore_index<span class="op">=</span><span class="va">True</span></span>
+<span id="cb11-19"><a href="" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-20"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-21"><a href="" aria-hidden="true" tabindex="-1"></a>simulated_standings <span class="op">=</span> (</span>
+<span id="cb11-22"><a href="" aria-hidden="true" tabindex="-1"></a>    simulations</span>
+<span id="cb11-23"><a href="" aria-hidden="true" tabindex="-1"></a>    .loc[:, [<span class="st">'simulation_id'</span>, <span class="st">'group_letter_home'</span>, <span class="st">'team_name_home'</span>, <span class="st">'home_team_points'</span>]]</span>
+<span id="cb11-24"><a href="" aria-hidden="true" tabindex="-1"></a>    .rename(columns<span class="op">=</span>{<span class="st">'group_letter_home'</span>: <span class="st">'group'</span>, <span class="st">'team_name_home'</span>: <span class="st">'team'</span>, <span class="st">'home_team_points'</span>: <span class="st">'pts'</span>})</span>
+<span id="cb11-25"><a href="" aria-hidden="true" tabindex="-1"></a>    .groupby([<span class="st">'simulation_id'</span>, <span class="st">'group'</span>, <span class="st">'team'</span>])</span>
+<span id="cb11-26"><a href="" aria-hidden="true" tabindex="-1"></a>    .agg(total_points<span class="op">=</span>(<span class="st">'pts'</span>, <span class="st">'sum'</span>))</span>
+<span id="cb11-27"><a href="" aria-hidden="true" tabindex="-1"></a>    .reset_index()</span>
+<span id="cb11-28"><a href="" aria-hidden="true" tabindex="-1"></a>    .sort_values([<span class="st">'simulation_id'</span>, <span class="st">'group'</span>, <span class="st">'total_points'</span>], ascending<span class="op">=</span>[<span class="va">True</span>, <span class="va">True</span>, <span class="va">False</span>])</span>
+<span id="cb11-29"><a href="" aria-hidden="true" tabindex="-1"></a>    .assign(rank<span class="op">=</span><span class="kw">lambda</span> df: df.groupby([<span class="st">'simulation_id'</span>, <span class="st">'group'</span>]).cumcount() <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb11-30"><a href="" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-31"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-32"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># the top 2 teams in each group will advance to the knockout stage</span></span>
+<span id="cb11-33"><a href="" aria-hidden="true" tabindex="-1"></a>top_two <span class="op">=</span> (</span>
+<span id="cb11-34"><a href="" aria-hidden="true" tabindex="-1"></a>    simulated_standings</span>
+<span id="cb11-35"><a href="" aria-hidden="true" tabindex="-1"></a>    .query(<span class="st">'rank &lt;= 2'</span>)</span>
+<span id="cb11-36"><a href="" aria-hidden="true" tabindex="-1"></a>    .reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb11-37"><a href="" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-38"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-39"><a href="" aria-hidden="true" tabindex="-1"></a><span class="co"># the top 8 third-place teams will also advance</span></span>
+<span id="cb11-40"><a href="" aria-hidden="true" tabindex="-1"></a>best_third <span class="op">=</span> (</span>
+<span id="cb11-41"><a href="" aria-hidden="true" tabindex="-1"></a>    simulated_standings</span>
+<span id="cb11-42"><a href="" aria-hidden="true" tabindex="-1"></a>    .query(<span class="st">'rank == 3'</span>)</span>
+<span id="cb11-43"><a href="" aria-hidden="true" tabindex="-1"></a>    .groupby(<span class="st">'simulation_id'</span>)</span>
+<span id="cb11-44"><a href="" aria-hidden="true" tabindex="-1"></a>    .<span class="bu">apply</span>(<span class="kw">lambda</span> df: df.nlargest(<span class="dv">8</span>, <span class="st">'total_points'</span>))</span>
+<span id="cb11-45"><a href="" aria-hidden="true" tabindex="-1"></a>    .reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb11-46"><a href="" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-47"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-48"><a href="" aria-hidden="true" tabindex="-1"></a>advancing_teams <span class="op">=</span> (</span>
+<span id="cb11-49"><a href="" aria-hidden="true" tabindex="-1"></a>    pd.concat([top_two, best_third], ignore_index<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb11-50"><a href="" aria-hidden="true" tabindex="-1"></a>    .groupby(<span class="st">'team'</span>)</span>
+<span id="cb11-51"><a href="" aria-hidden="true" tabindex="-1"></a>    .agg(times_advanced<span class="op">=</span>(<span class="st">'team'</span>, <span class="st">'size'</span>))</span>
+<span id="cb11-52"><a href="" aria-hidden="true" tabindex="-1"></a>    .assign(prob_advance<span class="op">=</span><span class="kw">lambda</span> df: df[<span class="st">'times_advanced'</span>] <span class="op">/</span> n_simulations)</span>
+<span id="cb11-53"><a href="" aria-hidden="true" tabindex="-1"></a>    .sort_values(<span class="st">'prob_advance'</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb11-54"><a href="" aria-hidden="true" tabindex="-1"></a>    .reset_index()</span>
+<span id="cb11-55"><a href="" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-56"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-57"><a href="" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(advancing_teams.head())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section><section id="step-6-communicate" class="slide level2"><h2>Step 6: Communicate</h2>
@@ -705,7 +888,7 @@ David Awosoga
 <li>
 <p>Web applications/dashboards</p>
 <ul>
-<li>Eg: <a href="https://shiny.posit.co">Shiny</a>, <a href="https://streamlit.io">Streamlit</a>, <a href="https://dash.plotly.com">Dash</a>, <a href="https://bokeh.org">Bokeh</a>
+<li>Eg: <a href="https://shiny.posit.co">Shiny</a>, <a href="https://streamlit.io">Streamlit</a>, <a href="https://dash.plotly.com">Dash</a>, and <a href="https://bokeh.org">Bokeh</a> can all be deployed for free on <a href="https://connect.posit.cloud">Posit Connect Cloud</a>
 </li>
 </ul>
 </li>
@@ -746,7 +929,7 @@ David Awosoga
 <li>
 <p><em>What</em> is the most sustainable medium for these insights to be shared?</p>
 <ul>
-<li>Online web application</li>
+<li>Online web application - Shiny</li>
 </ul>
 </li>
 <li>
@@ -755,10 +938,14 @@ David Awosoga
 <li>Should be accessible constantly</li>
 </ul>
 </li>
-</ul></section><section id="extensions" class="slide level2"><h2>Extensions</h2>
+</ul></section><section id="step-6-communicate---code" class="slide level2"><h2>Step 6: Communicate - Code</h2>
+<p>Please see <code>app.R</code> or <code>app.py</code> for a demo web application built using <a href="https://shiny.posit.co"><code>Shiny</code></a>.</p>
+</section><section id="extensions" class="slide level2"><h2>Extensions</h2>
 <ul>
 <li><p>What are some limitations of this project that we can improve in future iterations?</p></li>
+<li><p>We aren’t considering draws, which provide an additional outcome that can occur in the group stage</p></li>
 <li><p>What are some missing features that we can add in future iterations?</p></li>
+<li><p>The ability to simulate the knockout stage and generate an overall tournament winner</p></li>
 </ul></section><section id="conclusion" class="slide level2"><h2>Conclusion</h2>
 <p>Today, we:</p>
 <ul>

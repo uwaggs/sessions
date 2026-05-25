@@ -75,7 +75,7 @@ ui <- fluidPage(
   titlePanel("FIFA World Cup 2026 Simulation"),
   sidebarLayout(
     sidebarPanel(
-      numericInput(inputId = "num_sims", label = "Number of Simulations", value = 10, min = 1, max = 10000),
+      numericInput(inputId = "num_sims", label = "Number of Simulations", value = 1000, min = 1, max = 10000),
       selectInput(
         inputId = "favourite_team",
         label = "Select Your Favourite Team",
@@ -89,50 +89,49 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
+  
+  advancing_teams <- reactive({
+    n_simulations = input$num_sims
+    
+    simulations <- 
+      map_dfr(
+        1:n_simulations, 
+        ~ simulate_group_stage(complete_schedule) %>% 
+          mutate(simulation_id = .x)
+      )
+    
+    simulated_standings <- 
+      simulations %>% 
+      select(simulation_id, group = group_letter_home, team = team_name_home, pts = home_team_points) %>% 
+      group_by(simulation_id, group, team) %>% 
+      summarise(total_points = sum(pts)) %>% 
+      group_by(simulation_id, group) %>% 
+      arrange(desc(total_points)) %>% 
+      mutate(rank = row_number()) %>%
+      ungroup()
+    
+    top_two <- 
+      simulated_standings %>% 
+      filter(rank <= 2)
+    
+    best_third <- 
+      simulated_standings %>% 
+      filter(rank == 3) %>% 
+      group_by(simulation_id) %>% 
+      arrange(desc(total_points)) %>% 
+      slice_head(n = 8) %>% 
+      ungroup()
+    
+    bind_rows(top_two, best_third) %>% 
+      count(team, name = "times_advanced") %>% 
+      mutate(prob_advance = times_advanced / n_simulations) %>% 
+      arrange(desc(prob_advance))
+  })
+  
 output$advancing_probability <- renderText({
-  n_simulations <- input$num_sims
   
-  # re-run the simulations with the updated number of simulations
-  
-  simulations <- 
-    map_dfr(
-      1:n_simulations, 
-      ~ simulate_group_stage(complete_schedule) %>% 
-        mutate(simulation_id = .x)
-    )
-  
-  simulated_standings <- 
-    simulations %>% 
-    select(simulation_id, group = group_letter_home, team = team_name_home, pts = home_team_points) %>% 
-    group_by(simulation_id, group, team) %>% 
-    summarise(total_points = sum(pts)) %>% 
-    group_by(simulation_id, group) %>% 
-    arrange(desc(total_points)) %>% 
-    mutate(rank = row_number()) %>%
-    ungroup()
-  
-  # the top 8 teams in each group will advance to the knockout stage
-  top_two <- 
-    simulated_standings %>% 
-    filter(rank <= 2)
-  
-  # the top 8 third-place teams will aslo advance
-  best_third <- 
-    simulated_standings %>% 
-    filter(rank == 3) %>% 
-    group_by(simulation_id) %>% 
-    arrange(desc(total_points)) %>% 
-    slice_head(n = 8) %>% 
-    ungroup()
-  
-  advancing_teams <- bind_rows(top_two, best_third) %>% 
-    count(team, name = "times_advanced") %>% 
-    mutate(prob_advance = times_advanced / n_simulations) %>% 
-    arrange(desc(prob_advance))
-  
-  # re-generate the plot with the new simulation results
   paste0("The probability of ", input$favourite_team, " advancing to the knockout stage is: ",
-         advancing_teams %>% filter(team == input$favourite_team) %>% pull(prob_advance) * 100, "%")
+         advancing_teams() %>% filter(team == input$favourite_team) %>% pull(prob_advance) * 100, "%")
 })
 }
 shinyApp(ui = ui, server = server)
