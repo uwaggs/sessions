@@ -1,0 +1,857 @@
+---
+title: "xG Pipeline"
+author: "Jack Davis"
+date: "2026-07-02"
+output: slidy_presentation
+---
+
+## The Plan
+
+1. Getting the data
+2. Filtering the data
+3. Building a basic xG Model
+4. Improving the model
+
+
+## 1. Getting the data
+
+Ideally, you should be able to use the appropriate R package and download the data from there. If you're doing something niche, you may need to use more custom methods like building your own scraper, or running optical character recognition (OCR) from image files or PDFs. 
+
+Just because a data gathering method worked in the past doesn't mean it will continue to work.
+
+For example, the original plan for this tutorial was to use the WorldfootballR to get shot details from the website Understat. Since the last time I got this data about a year ago, Understat has made scraping this information from the HTML source impossible.
+
+
+
+## 1. Getting the data
+
+...so I pivoted to hockey and the hockeyR package, which has the history play-by-play data for all NHL games as a file on its Github, but only up to the 2023-24 season.
+
+That's why today is about hockey data and not soccer/football data. 
+
+Having said that, I want to give a shout out to Devin Pleuler, because I also complained on Linkedin about how it's getting hard to get play-by-play level data, and he came through with a link to his StatsBomb Github https://github.com/statsbomb/open-data , which has thousands of soccer games of event-level data in JSON format that we can use freely.
+
+## 1. Getting the data
+
+
+Let's talk a little more about how to get sports data. Usually what we're looking for is "event data", or "play-by-play data" for something like an xG model, but if we want to go deeper, what we really want is "player tracking data".
+
+
+Apparently APIfy at https://apify.com/ has scrapers that you can use to get event data, but I haven't looked at it yet (maybe next semester? I'm taking requests for tutorials and talks right now) https://apify.com/jungle_synthesizer/thesportsdb-multi-sport-api-wrapper
+
+Similarly, https://www.thestatsapi.com/ charges for use and I haven't tested it. The website https://www.football-data.co.uk/data.php has historical data, but not at the event level. It would be good enough to make a bracketeering application.
+
+## 1. Getting the data
+
+Lars Skytte's website https://hockey-statistics.com/data/ has event data and shifts data for the NHL up historically up to 2025, and seems to be chugging right along using the NHL's API. The website also has Profession Women's Hockey League (PWHL) data. 
+
+Lars also writes blog posts about things like the xG model, so we can use that as guidance for our own work.
+
+
+
+
+## 1. Getting the data
+
+Let's use the hockeyR data
+
+
+```{r}
+library(stringr)
+library(hockeyR)#found in sportsdataverse
+library(plyr)
+library(dplyr)#for organizing data
+library(ggplot2)
+pbp24=load_pbp('2023-24') # downloads the pbp file from github
+```
+
+## 2. Filtering the data
+
+What does the data look like?
+
+```{r}
+pbp24 = data.frame(pbp24)
+dim(pbp24)
+names(pbp24)
+```
+
+
+## 2. Filtering the data
+
+What does the data look like?
+
+```{r}
+pbp24 = data.frame(pbp24)
+head(pbp24, n=4)
+```
+
+
+## 2. Filtering the data
+
+What does the data look like?
+
+
+```{r}
+table(pbp24$period)
+table(pbp24$season_type)
+table(pbp24$event_type)
+```
+
+
+## 2. Filtering the data
+
+Filter out the playoff games (`season_type = "POST"`) and the overtime plays (`period > 3`).
+
+
+
+
+```{r}
+nrow(pbp24)
+pbp24=subset(pbp24,period<=3 & season_type!="POST")
+nrow(pbp24)
+```
+
+.
+
+.
+
+.
+
+.
+
+## 2. Filtering the data
+
+Look only at shots and attempted shots.
+
+```{r}
+df_shots=subset(pbp24,event_type%in%c("SHOT",
+          "BLOCKED_SHOT","FAILED_SHOT_ATTEMPT",
+          "MISSED_SHOT","GOAL"))
+nrow(df_shots)
+```
+
+Remove the rare cases where the team shooting wasn't recorded.
+
+```{r}
+df_shots=subset(df_shots,!is.na(event_team))
+nrow(df_shots)
+```
+
+.
+
+.
+
+.
+
+.
+
+
+
+## 2. Filtering the data
+
+If we don't know the secondary event type (e.g., shot type), use the primary event type in its place. This is the case for a few goals, missed shots
+
+
+```{r}
+
+table(df_shots$secondary_type, df_shots$event_type, useNA = "always")
+
+
+df_shots$secondary_type[is.na(df_shots$secondary_type)]=
+      df_shots$event_type[is.na(df_shots$secondary_type)]
+```
+
+```{r}
+table(df_shots$secondary_type, df_shots$event_type)
+
+```
+
+
+.
+
+.
+
+.
+
+.
+
+
+## 2. Filtering the data
+
+Mark the ones that were otherwise goals in the secondary type (shot type) as shots. Does the proportion of shot attempts that end up goals make sense? About 5%?
+
+```{r}
+
+df_shots$secondary_type[df_shots$secondary_type=="GOAL"]="SHOT"
+
+df_shots$is_goal=1*(df_shots$event_type=="GOAL")
+
+table(df_shots$is_goal)
+
+mean(df_shots$is_goal)
+```
+
+
+
+## 3. Building the xG Model
+
+Now we're ready to build the xG model. We know that distance to the net is a key factor. We can see from the graph of shot locations where the nets are.
+
+```{r}
+plot(df_shots$x_fixed[1:1000], 
+     df_shots$y_fixed[1:1000])
+
+range(df_shots$x_fixed)
+range(df_shots$y_fixed)
+```
+
+## 3. Building the xG Model
+
+The data says that shot attempts come from -100 to +100 feet in the x-direction. Let's next account for the 11 feet behind the front of the net.
+
+![](https://upload.wikimedia.org/wikipedia/commons/0/0b/Ice_hockey_layout.svg)
+
+
+
+## 3. Building the xG Model
+
+Use these coordinates to get the distance from a shot to the center of the front of the net.
+
+Some of the shots are strangely long. Those are probably dump-ins that are technically shots because they reached the opposing goalie.
+
+```{r}
+x = df_shots$x_fixed
+y = df_shots$y_fixed
+etteam = df_shots$event_team_type
+etteam[is.na(etteam)] = "home"
+sdist = 1*(etteam == "home")*sqrt( (x- 89)^2 + (y)^2) +
+        1*(etteam == "away")*sqrt( (x + 89)^2 + (y)^2)
+
+hist(sdist)
+```
+
+.
+
+.
+
+.
+
+.
+
+## 3. Building the xG Model
+
+Let's check out the relationship between distance and goal percentage to see if it makes sense.
+
+
+
+```{r}
+sdist_cat = cut(sdist, breaks=seq(from=0, to=200, by=10))
+```
+
+First the number of goals (1) and non-scoring shots (0) at each distance interval.
+
+```{r}
+tab = table(sdist_cat, df_shots$is_goal)
+tab
+```
+
+Next with the proportion in each row. Looks like the closest shots do the best.
+
+```{r}
+round(prop.table(tab, 1), 3)
+```
+
+
+.
+
+.
+
+.
+
+.
+
+
+
+## 3. Building the xG Model
+
+
+
+Now for the shot angle.
+
+To get these, let's normalize by turning 0-distance shots into those that are positive, but arbitrarily small. Let's also get all the y-distances the same so we get positive angles.
+
+```{r}
+x_dist=abs(1*(etteam=="home")*(x-89)+ 1*(etteam=="away")*(x+89))
+
+y_dist=abs(y)
+x_dist[x_dist==0]=0.00001
+y_dist[y_dist==0]=0.00001
+```
+
+`atan` is inverse tangent, or arctan.
+
+```{r}
+sang=atan(y_dist/x_dist)*180/3.14159
+sang[sang < 0]=sang[sang<0]+ 180
+
+hist(sang)
+```
+
+.
+
+.
+
+.
+
+.
+
+
+## 3. Building the xG Model
+
+
+We then fill in these missing shot angle, shot distance,and player strength codes
+for blocked or missed shot attempts, for when the dataframe did not have this
+information recorded (but we were able to derive from shot location).
+
+
+```{r}
+table(df_shots$shot_angle, useNA = "always")
+
+idx_to_fill=is.na(df_shots$shot_angle)
+df_shots$shot_angle[idx_to_fill]=sang[idx_to_fill]
+
+table(df_shots$shot_angle, useNA = "always")
+```
+
+```{r}
+
+table(df_shots$shot_distance, useNA = "always")
+
+idx_to_fill=is.na(df_shots$shot_distance)
+df_shots$shot_distance[idx_to_fill]=sdist[idx_to_fill]
+
+table(df_shots$shot_distance, useNA = "always")
+```
+
+
+
+```{r}
+table(df_shots$strength_code, useNA = "always")
+
+idx_to_fill=is.na(df_shots$strength_code)
+length(idx_to_fill)
+df_shots$strength_code[idx_to_fill]="EV"
+
+
+table(df_shots$strength_code, useNA = "always")
+```
+
+
+.
+
+.
+
+.
+
+.
+
+## 3. Building the xG Model
+
+For the blocked shots, replace the NA for goalie with the goalie that was on the ice.
+
+
+```{r}
+table(df_shots$secondary_type, useNA="always")
+
+idx_blocked_homeshot=which(df_shots$secondary_type=="BLOCKED_SHOT" &
+                df_shots$event_team_type=="home")
+  df_shots$event_goalie_name[idx_blocked_homeshot]=
+          df_shots$away_goalie[idx_blocked_homeshot]
+
+  idx_blocked_awayshot=which(df_shots$secondary_type=="BLOCKED_SHOT"&
+                  df_shots$event_team_type=="away")
+
+df_shots$event_goalie_name[idx_blocked_awayshot]=
+                  df_shots$home_goalie[idx_blocked_awayshot]
+
+table(df_shots$secondary_type, useNA="always")
+
+```
+
+.
+
+.
+
+.
+
+.
+
+
+## 3. Building the xG Model
+
+Finally, we model the log-odds of a goal based on the details of the shot attempt,
+which we then convert into xG by taking the (back-transformed) fitted values.
+
+
+```{r}
+
+
+mod = glm(is_goal ~ shot_distance + shot_angle + secondary_type +
+            extra_attacker + strength_code,
+              data=df_shots, family="binomial")
+
+summary(mod)
+```
+
+We save the fitted values as our xG model output.
+
+
+```{r}
+df_shots$XG_basic = mod$fitted.values
+hist(df_shots$XG_basic)
+```
+
+
+.
+
+.
+
+.
+
+.
+
+## 4. Improving the model
+
+How good is the model?
+
+The McFadden R-squared for generalized linear models is close to equivalent for the R-squared for linear models, telling us roughtly how much variance has been explained by our model. Can we do better than 16.2%?
+
+```{r}
+1 - mod$deviance / mod$null.deviance
+```
+
+
+.
+
+.
+
+.
+
+.
+
+## 4. Improving the model
+
+The proportion of times something is a goal does seem to be increasing as the xG increases.
+
+```{r}
+xg_cat = cut(df_shots$XG_basic, breaks=seq(from=0, to=1, by=1/40))
+
+tab = table(xg_cat, df_shots$is_goal)
+tab
+
+round(prop.table(tab, 1), 3)
+```
+
+
+.
+
+.
+
+.
+
+.
+
+## 4. Improving the model
+
+Currently our model only uses shot distance, shot angle, shot type (`secondary_type`), whether there is an `extra_attacker` on the ice from a pulled goalie on the shooter's team, and a marker for whether the team shooting is short handed, even strength, or on the power play (`strength_code`)
+
+
+```{r, eval=FALSE}
+mod = glm(is_goal ~ shot_distance + 
+            shot_angle + 
+            secondary_type +
+            extra_attacker + 
+            strength_code,
+              data=df_shots, family="binomial")
+```
+
+What can we do to improve this model? We have a LOT of degrees of freedom to work with.
+
+.
+
+.
+
+.
+
+.
+
+## 4. Improving the model
+
+- We can include the period, which may matter as players fatigue, and also because of the bench-goalie distance is backwards in period 2.
+
+- We'll force R to interpret period as a category with `as.factor` rather than a continuous number.
+
+- This model won't work in overtime, but overtime is already a different beast because it's 3v3 so using a 5v5 model may be inappropriate.
+
+
+```{r}
+df_shots$period_factor = as.factor(df_shots$period)
+table(df_shots$period_factor)
+```
+
+The residual deviance to beat is 52530
+
+```{r}
+mod2 = glm(is_goal ~ shot_distance + 
+            shot_angle + 
+            secondary_type +
+            extra_attacker + 
+            strength_code + 
+            period_factor,
+              data=df_shots, family="binomial")
+
+summary(mod2)
+
+1 - mod2$deviance / mod2$null.deviance
+```
+
+...just barely. Not the most inspiring improvement. What else can we do?
+
+
+.
+
+.
+
+.
+
+.
+
+
+## 4. Improving the model
+
+- We could look at the number of shot attempts that have happened in the last 10, 20, or 30 seconds, because if multiple attempts happen in quick succession, that might indicate that the goalie is already out of position.
+
+- We need a way to count the number of shots that have happened recently against a given goalie. This is going to be approximate unless we factor in things like faceoffs, that would be messy (a good exercise for home though)
+
+Here's what we'll do. First, we'll split the dataset in 'shots by home' and 'shots by away', and take the `diff()` of `period_seconds` for each shot. Then we'll do something similar to see the time since two shots ago, and three shots ago. Any large values or negative values will be increased to 120 seconds, an arbitrary number that will indicate that the goalie and defenders are back in position, lines changed, etc.
+
+Finally, we'll merge the two datasets back, and sort them back into the original order using `event_id`
+
+.
+
+.
+
+.
+
+.
+
+
+## 4. Improving the model
+
+First home with one shot (looks exponential, why?)
+
+```{r}
+df_shots = arrange(df_shots, event_id)
+```
+
+```{r}
+df_shots_home = subset(df_shots, event_team_type == "home")
+seconds_since_1_shot = c(120, diff(df_shots_home$period_seconds))
+seconds_since_1_shot[seconds_since_1_shot < 0 | seconds_since_1_shot > 120] = 120
+hist(seconds_since_1_shot)
+```
+
+...home two shots (looks like a gamma, why?)
+
+
+```{r}
+Nshots = nrow(df_shots_home)
+seconds_since_2_shot = c(120, 120, 
+               df_shots_home$period_seconds[-c(1,2)] - 
+              df_shots_home$period_seconds[-c(Nshots-1, Nshots)]   )
+seconds_since_2_shot[seconds_since_2_shot < 0 | seconds_since_2_shot > 120] = 120
+hist(seconds_since_2_shot)
+```
+
+...home three shots (looks like a gamma again, why?)
+
+
+
+```{r}
+seconds_since_3_shot = c(120, 120, 120,
+               df_shots_home$period_seconds[-c(1,2,3)] - 
+              df_shots_home$period_seconds[-c(Nshots-2, Nshots-1, Nshots)]   )
+seconds_since_3_shot[seconds_since_3_shot < 0 | seconds_since_3_shot > 120] = 120
+hist(seconds_since_3_shot)
+```
+
+And putting these in
+
+```{r}
+df_shots_home$seconds_since_1 = seconds_since_1_shot
+df_shots_home$seconds_since_2 = seconds_since_2_shot
+df_shots_home$seconds_since_3 = seconds_since_3_shot
+```
+
+
+.
+
+.
+
+.
+
+.
+
+## 4. Improving the model
+
+Repeat with away team
+
+```{r}
+df_shots_away = subset(df_shots, event_team_type == "away")
+seconds_since_1_shot = c(120, diff(df_shots_away$period_seconds))
+seconds_since_1_shot[seconds_since_1_shot < 0 | seconds_since_1_shot > 120] = 120
+```
+
+
+
+```{r}
+Nshots = nrow(df_shots_away)
+seconds_since_2_shot = c(120, 120, 
+               df_shots_away$period_seconds[-c(1,2)] - 
+              df_shots_away$period_seconds[-c(Nshots-1, Nshots)]   )
+seconds_since_2_shot[seconds_since_2_shot < 0 | seconds_since_2_shot > 120] = 120
+```
+
+
+
+
+```{r}
+seconds_since_3_shot = c(120, 120, 120,
+               df_shots_away$period_seconds[-c(1,2,3)] - 
+              df_shots_away$period_seconds[-c(Nshots-2, Nshots-1, Nshots)]   )
+seconds_since_3_shot[seconds_since_3_shot < 0 | seconds_since_3_shot > 120] = 120
+```
+
+
+```{r}
+df_shots_away$seconds_since_1 = seconds_since_1_shot
+df_shots_away$seconds_since_2 = seconds_since_2_shot
+df_shots_away$seconds_since_3 = seconds_since_3_shot
+```
+
+
+.
+
+.
+
+.
+
+.
+
+
+## 4. Improving the model
+
+Next we merge the datasets
+
+```{r}
+df_shots2 = rbind(df_shots_home, df_shots_away)
+df_shots2 = arrange(df_shots2, event_id)
+all(df_shots$event_id == df_shots2$event_id)
+```
+
+Finally, we something that counts the number of recent shots (up to 3 in the last 10, 20, 30 seconds)
+
+```{r}
+df_shots2$shots_last_5 = 1*(df_shots2$seconds_since_1 <= 5) +
+                          1*(df_shots2$seconds_since_2 <= 5) +
+                          1*(df_shots2$seconds_since_3 <= 5)
+
+df_shots2$shots_last_10 = 1*(df_shots2$seconds_since_1 <= 10) +
+                          1*(df_shots2$seconds_since_2 <= 10) +
+                          1*(df_shots2$seconds_since_3 <= 10)
+
+df_shots2$shots_last_20 = 1*(df_shots2$seconds_since_1 <= 20) +
+                          1*(df_shots2$seconds_since_2 <= 20) +
+                          1*(df_shots2$seconds_since_3 <= 20)
+
+df_shots2$shots_last_30 = 1*(df_shots2$seconds_since_1 <= 30) +
+                          1*(df_shots2$seconds_since_2 <= 30) +
+                          1*(df_shots2$seconds_since_3 <= 30)
+
+```
+
+
+```{r}
+table(df_shots2$shots_last_5)
+table(df_shots2$shots_last_10)
+table(df_shots2$shots_last_20)
+table(df_shots2$shots_last_30)
+```
+
+
+.
+
+.
+
+.
+
+.
+
+
+
+## 4. Improving the model
+
+Now let's see it in the model.
+
+```{r}
+mod3 = glm(is_goal ~ shot_distance + 
+            shot_angle + 
+            secondary_type +
+            extra_attacker + 
+            strength_code + 
+            period_factor + 
+            shots_last_5 +
+             shots_last_10 +
+             shots_last_20 +
+             shots_last_30,
+              data=df_shots2, family="binomial")
+
+summary(mod3)
+```
+
+Well that's disappointing.
+
+
+.
+
+.
+
+.
+
+.
+
+
+## 4. Improving the model
+
+One last attempt.
+
+We might consider individual team effects, but personally I'd be concerned about those team effects being consistent from year to year. Individual goalie effects might work a little better, and we learned about random effects earlier this semester, so we can use them properly.
+
+We'll use `event_goalie_name` for this
+
+```{r}
+unique(df_shots2$event_goalie_name)
+
+```
+
+We have a problem, some of the time there's no goalie in net when a shot is taken. 1808 times actually. About 1.5% of the time and too many to ignore.
+
+```{r}
+length(which(is.na(df_shots2$event_goalie_name)))
+```
+
+Let's investigate
+
+```{r}
+idx_no_goalie = which(is.na(df_shots2$event_goalie_name))
+idx_no_goalie[1:10]
+
+table(df_shots2$is_goal[idx_no_goalie])
+table(df_shots2$strength_state[idx_no_goalie])
+```
+
+Almost half of these are goals, we could probably just replace the NA with "Empty Net" and let the model find the effect size. 18 of these are penalty shots (1v0 strength state), but that's too rare and too different for our model.
+
+We'll just have to remember to make the "Empty Net" replacement when applying this to new data.
+
+```{r}
+df_shots2$event_goalie_name[idx_no_goalie] = "Empty Net"
+```
+
+
+.
+
+.
+
+.
+
+.
+
+
+## 4. Improving the model
+
+Now to make the model. Ideally we would use a random effects model like glmer for this but for computational reasons we can't. 
+
+```{r}
+mod4 = glm(is_goal ~ shot_distance + 
+            shot_angle + 
+            secondary_type +
+            extra_attacker + 
+            strength_code + 
+            period_factor + 
+            shots_last_5 +
+             shots_last_10 +
+             shots_last_20 +
+             shots_last_30 + 
+             event_goalie_name,
+              data=df_shots2, family="binomial")
+              
+summary(mod4)
+```
+
+
+.
+
+.
+
+.
+
+.
+
+
+
+## 4. Improving the model
+
+It looks like the individual goalie doesn't matter much for xG, but the fact that there is a goalie at all does matter.
+
+Let's try a simpler one that just marks if the net is empty
+
+```{r}
+df_shots2$event_goalie_name[df_shots2$event_goalie_name == "Empty Net"] = NA
+df_shots2$is_empty_net = 1*(is.na(df_shots2$event_goalie_name))
+
+mod5 = glm(is_goal ~ shot_distance + 
+            shot_angle + 
+            secondary_type +
+            extra_attacker + 
+            strength_code + 
+            period_factor + 
+            shots_last_5 +
+             shots_last_10 +
+             shots_last_20 +
+             shots_last_30 + 
+             is_empty_net,
+              data=df_shots2, family="binomial")
+              
+summary(mod5)
+```
+
+
+Using all goalies:  48326 residual deviance
+
+Using just "Empty net": 48457 residual deviance
+
+Not a big enough improvement to justify including that and dealing with new goalies later.
+
+```{r}
+1 - mod5$deviance / mod5$null.deviance
+```
+
+All those improvements got us from 16.2% R-squared to 22.7% R-squared. Worth the effort to look, eh?
+
+.
+
+.
+
+.
+
+.
