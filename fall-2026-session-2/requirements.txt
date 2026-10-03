@@ -1,0 +1,7 @@
+shiny
+shinywidgets
+plotly
+pandas
+lxml
+curl_cffi
+nodriver
