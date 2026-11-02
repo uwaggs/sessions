@@ -1,0 +1,49 @@
+/*-- scss:defaults --*/
+$body-bg: #ffffff;
+$body-color: #1b1b1b;
+$link-color: #8a6a00;
+$presentation-heading-color: #111111;
+$presentation-heading-font-weight: 700;
+$presentation-font-size-root: 30px;
+$code-block-font-size: 0.5em;
+$code-color: #7a3e00;
+
+/*-- scss:rules --*/
+.reveal h2 {
+  border-bottom: 4px solid #e5b80b;  // UWAGGS gold
+  padding-bottom: 0.15em;
+}
+
+.reveal .slide-logo {
+  max-height: 2.4rem !important;
+}
+
+.reveal .small {
+  font-size: 0.7em;
+}
+
+.reveal .muted {
+  color: #6b6b6b;
+}
+
+// language tabs: make the active tab obvious
+.reveal .panel-tabset .nav-link.active {
+  border-top: 3px solid #e5b80b;
+  font-weight: 600;
+}
+
+.reveal .panel-tabset .tab-content {
+  padding-top: 0.2em;
+}
+
+.reveal pre.sourceCode code {
+  max-height: 460px;
+}
+
+.reveal .callout {
+  font-size: 0.75em;
+}
+
+.reveal table {
+  font-size: 0.65em;
+}
