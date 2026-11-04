@@ -1,0 +1,19 @@
+{%- extends 'lab/index.html.j2' -%}
+
+{# Wrap every code cell's input in a click-to-expand <details> block #}
+{% block input_group %}
+<details class="code-fold">
+<summary>Show code</summary>
+{{ super() }}
+</details>
+{% endblock input_group %}
+
+{% block extra_css %}
+{{ super() }}
+<style>
+  details.code-fold > summary {
+    cursor: pointer; color: #666; font-family: var(--jp-ui-font-family, system-ui, sans-serif);
+    font-size: 0.85em; margin: 4px 0 4px 8px;
+  }
+</style>
+{% endblock extra_css %}

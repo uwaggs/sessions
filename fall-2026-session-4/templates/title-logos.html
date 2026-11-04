@@ -1,0 +1,33 @@
+<!-- Logos on the opening slide. Moved into #title-slide by the script below. -->
+<style>
+  /* the long title otherwise fills the slide and pushes the logos off-screen */
+  .reveal #title-slide h1.title { font-size: 1.9em; }
+  .reveal #title-slide .subtitle { font-size: 1.1em; }
+  .reveal #title-slide .quarto-title-authors,
+  .reveal #title-slide .date { margin: 0.2em 0; }
+  .title-logos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2.5em;
+    margin-top: 1em;
+  }
+  .reveal .title-logos img {
+    margin: 0;
+    max-height: none;
+  }
+  /* the UWAGGS png has extra transparent padding, so give it a bit more room */
+  .reveal .title-logos img.logo-uwaggs { height: 170px; }
+  .reveal .title-logos img.logo-utspan { height: 135px; }
+</style>
+<div class="title-logos" id="title-logos">
+  <img class="logo-uwaggs" src="logos/uwaggs.png" alt="UWAGGS logo">
+  <img class="logo-utspan" src="logos/utspan.jpg" alt="UTSPAN logo">
+</div>
+<script>
+  (function () {
+    var logos = document.getElementById("title-logos");
+    var slide = document.getElementById("title-slide");
+    if (logos && slide) slide.appendChild(logos);
+  })();
+</script>
